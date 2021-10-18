@@ -1,0 +1,9 @@
+a.out
+myfifo
+*.cmd
+*.o
+*.ko
+*.mod
+*.mod.c
+*.symvers
+*.order
