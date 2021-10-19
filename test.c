@@ -21,6 +21,7 @@ void wait_any_button()
     FD_ZERO(&rfds);
     FD_SET(0, &rfds); // fd 0 is stdin
     select(1, &rfds, NULL, NULL, NULL);
+    getchar();
     return;
 }
 
@@ -263,12 +264,36 @@ void test7(int argc, char* argv[])
     assert(0 == iret, "rmdir error\n");
     return;
 }
+
+/*
+    26/341
+    umask creat chmod fchmod link unlink
+*/
+void test8(int argc, char* argv[])
+{
+    const char name[] = "test8_file";
+    mode_t last = umask(0444);
+    int fd = creat(name, S_IRWXU|S_IRWXG|S_IRWXO);
+    assert(0 <= fd, "creat error\n");
+    assert(0 == chmod(name, 0365), "chmod error\n");
+    assert(0 == fchmod(fd, 0664), "fchmod error\n");
+    printf("file created.Press any button to rename\n");
+    wait_any_button();
+    const char newname[] = "test8_newname";
+    assert(0 == link(name, newname), "link error\n");
+    printf("file renamed.Press any button to delete\n");
+    wait_any_button();
+    assert(0 == unlink(newname), "unlink error\n");
+    assert(0 == unlink(name), "unlink error\n");
+}
+
+
 int main(int argc, char* argv[])
 {
     for(int i = 0; i < argc; i++)
     {
         printf("Arg%d: %s\n", i, argv[i]);
     }
-    test7(argc, argv);
+    test8(argc, argv);
     return 0;
 }
