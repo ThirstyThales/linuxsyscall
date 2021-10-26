@@ -304,12 +304,82 @@ void test9(int argc, char* argv[])
     ret = unlink("file_softlink");
     assert(0 == ret, "unlink error!\n");
 }
+
+/*
+    42/341
+    setresuid setresgid
+    getresuid getresgid
+    setreuid setregid
+    geteuid getuid getegid getgid 
+    setgid setegid setuid seteuid
+*/
+void test10_printid()
+{
+    uid_t r,e,s;
+    gid_t gr,ge,gs;
+    int ret = getresuid(&r, &e, &s);
+    assert(0 == ret, "getresuid error!\n");
+    printf("read uid: %x, effective uid: %x, seted uid: %x\n",
+        r, e, s);
+    
+    ret = getresgid(&gr, &ge, &gs);
+    assert(0 == ret, "getresgid error!\n");
+    printf("read gid: %x, effective gid: %x, seted gid: %x\n",
+        gr, ge, gs);
+}
+void test10(int argc, char* argv[])
+{
+    int ret = 0;
+    test10_printid();
+
+    uid_t now_user = geteuid();
+    if(now_user != getuid())
+        printf("euid not equal ruid!\n");
+    gid_t now_group = geteuid();
+    if(now_group != getgid())
+        printf("egid not equal rgid!\n");
+    
+    assert(0 == now_user, "not is root user!please run with sudo!\n");
+    
+    const uid_t usr = 1000;
+    const uid_t grp = 1000;
+
+    //ret = setgid(grp);
+    //assert(0 == ret, "setgid(1000) error!\n");
+    ret = setegid(grp);
+    assert(0 == ret, "setegid(1000) error!\n");
+
+    //ret = setuid(usr);//Can't regain root privileges
+    //assert(0 == ret, "setuid(1000) error!\n");
+    ret = seteuid(usr);
+    assert(0 == ret, "seteuid(1000) error!\n");
+
+    int nf = creat("fileNotRoot",S_IRWXU|S_IRWXG|S_IRWXO);
+    assert(-1 != nf, "creat file failed!\n");
+
+    printf("root created a file!\n");
+    wait_any_button();
+    ret = unlink("fileNotRoot");
+    assert(0 == ret, "unlink error!\n");
+
+    test10_printid();
+    printf("try regain root privileges...\n");
+    //ret = setregid(0,0);
+    ret = setresgid(0, 0, -1);
+    assert(0 == ret, "setresgid error!\n");
+    //ret = setreuid(0,0);
+    ret = setresuid(0, 0, -1);
+    assert(0 == ret, "setresuid error!\n");
+
+    test10_printid();
+}
+
 int main(int argc, char* argv[])
 {
     for(int i = 0; i < argc; i++)
     {
         printf("Arg%d: %s\n", i, argv[i]);
     }
-    test9(argc, argv);
+    test10(argc, argv);
     return 0;
 }
