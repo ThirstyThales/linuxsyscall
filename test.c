@@ -287,13 +287,29 @@ void test8(int argc, char* argv[])
     assert(0 == unlink(name), "unlink error\n");
 }
 
-
+/*
+    28/341
+    symlink readlink
+*/
+void test9(int argc, char* argv[])
+{
+    int ret = symlink("file","file_softlink");
+    assert(0 == ret, "symlink error!\n");
+    wait_any_button();
+    char buf[123];
+    ssize_t ss = readlink("file_softlink", buf, sizeof(buf));
+    assert(-1 != ss, "readlink error!\n");
+    printf("readlink: %.*s\n", ss, buf);
+    wait_any_button();
+    ret = unlink("file_softlink");
+    assert(0 == ret, "unlink error!\n");
+}
 int main(int argc, char* argv[])
 {
     for(int i = 0; i < argc; i++)
     {
         printf("Arg%d: %s\n", i, argv[i]);
     }
-    test8(argc, argv);
+    test9(argc, argv);
     return 0;
 }
