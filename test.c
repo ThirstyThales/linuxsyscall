@@ -373,13 +373,33 @@ void test10(int argc, char* argv[])
 
     test10_printid();
 }
-
+/*
+    45/341
+    access
+    alarm pause
+*/
+void test11(int argc, char* argv[])
+{
+    if(0 == access("file", F_OK))
+    {
+        printf("file is existd.\n");
+    }
+    if(0 == access("file", R_OK))
+    {
+        printf("file can be read.\n");
+    }
+    printf("pause.wait 5s or other sigaln.\n");
+    alarm(5);
+    fflush(stdout);
+    pause();
+    printf("THIS TEXT WILL NOT SHOW!\n");
+}
 int main(int argc, char* argv[])
 {
     for(int i = 0; i < argc; i++)
     {
         printf("Arg%d: %s\n", i, argv[i]);
     }
-    test10(argc, argv);
+    test11(argc, argv);
     return 0;
 }
