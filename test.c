@@ -13,6 +13,7 @@
 #include<stdint.h>
 #include<sys/ioctl.h>
 #include<time.h>
+#include<limits.h>
 #include "ioctl_driver/dev/ioctl.h"
 
 void wait_any_button()
@@ -394,12 +395,51 @@ void test11(int argc, char* argv[])
     pause();
     printf("THIS TEXT WILL NOT SHOW!\n");
 }
+/*
+    47/341
+    tee splice
+*/
+void test12(int argc, char* argv[])
+{
+    int fd = creat("test12_tmp.log", S_IRWXU|S_IRWXG|S_IRWXO);
+    int len = 0;
+    int slen = 0;
+    do
+    {
+        len = tee(STDIN_FILENO, STDOUT_FILENO, 
+            INT_MAX, SPLICE_F_NONBLOCK);
+        if(len < 0)
+        {
+            if(errno == EAGAIN)
+                continue;
+            perror("tee");
+            printf("example: date | ./a.out | cat\n");
+            exit(EXIT_FAILURE);
+        }
+        else if(len == 0)
+        {
+            printf("over\n");
+            break;
+        }
+        while(len > 0)
+        {
+            slen = splice(STDIN_FILENO, NULL, fd, NULL,
+                            len, SPLICE_F_MOVE);
+            if (slen < 0) {
+                perror("splice");
+                break;
+            }
+            len -= slen;
+        }
+    }while(1);
+}
 int main(int argc, char* argv[])
 {
     for(int i = 0; i < argc; i++)
     {
         printf("Arg%d: %s\n", i, argv[i]);
     }
-    test11(argc, argv);
+    fflush(stdout);
+    test12(argc, argv);
     return 0;
 }
