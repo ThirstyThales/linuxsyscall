@@ -433,6 +433,36 @@ void test12(int argc, char* argv[])
         }
     }while(1);
 }
+/*
+    50/341
+    dup dup2 dup3
+*/
+void test13(int argc, char* argv[])
+{
+    int ret = 0;
+    int fd = open("file", O_RDONLY);
+    assert(fd != -1, "open error\n" );
+
+    int fd1 = dup(fd);
+    assert(fd1 != -1, "dup error\n" );
+
+    int fd2 = dup2(fd, 666);
+    assert(fd2 != -1, "dup2 error\n" );
+
+    int fd3 = dup3(fd, 888, O_CLOEXEC);
+    assert(fd3 != -1, "dup3 error\n" );
+
+    printf("file: %d %d %d %d\n",
+        fd, fd1, fd2, fd3);
+    
+    close(STDIN_FILENO);
+    int nin = dup2(fd, STDIN_FILENO);
+    assert(nin == STDIN_FILENO, "dup2 STDIN error\n" );
+
+    const char d[256] = {};
+    scanf("%s", d);
+    printf("%s\n", d);
+}
 int main(int argc, char* argv[])
 {
     for(int i = 0; i < argc; i++)
@@ -440,6 +470,6 @@ int main(int argc, char* argv[])
         printf("Arg%d: %s\n", i, argv[i]);
     }
     fflush(stdout);
-    test12(argc, argv);
+    test13(argc, argv);
     return 0;
 }
